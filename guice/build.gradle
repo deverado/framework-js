@@ -1,0 +1,47 @@
+apply plugin: 'java'
+
+group = 'de.deverado.framework'
+// in settings: name
+version = '0.1-SNAPSHOT'
+description = 'Guice bindings for deverado js framework. deverado javascript engines in java framework. ' +
+'Provides a simple and well documented interface ' +
+'to Nashorn (and maybe Rhino later). Has a simple require implementation, too.'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+
+    compile 'de.deverado.framework:framework-js-nashorn:0.1-SNAPSHOT'
+
+    compile 'de.deverado.framework:framework-guice:0.1-SNAPSHOT'
+
+    compile 'com.google.code.findbugs:jsr305:2.0.1'
+    compile 'com.google.guava:guava:18.0'
+
+    testCompile 'junit:junit:4.12'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+apply plugin: 'maven-publish'
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            
+            artifact sourceJar {
+                classifier "sources"
+            }
+        }
+    }
+}
+
+apply plugin: 'eclipse'
+apply plugin: 'idea'

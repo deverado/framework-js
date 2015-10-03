@@ -3,21 +3,23 @@
 /target
 /bin
 /.gradle
-/api/build
-/api/target
-/api/bin
-/api/.gradle
-/nashorn/build
-/nashorn/target
-/nashorn/bin
-/nashorn/.gradle
+/*/build
+/*/target
+/*/bin
+/*/.gradle
 
 #eclipse
 .classpath
 .project
 .settings
+/*/.classpath
+/*/.project
+/*/.settings
 
 #idea
 *.iml
 *.ipr
 *.iws
+/*/*.iml
+/*/*.ipr
+/*/*.iws
