@@ -14,6 +14,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.io.CharSource;
 import com.google.common.io.Resources;
 import jdk.nashorn.api.scripting.NashornScriptEngine;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -81,7 +82,7 @@ public class NashornHelperTest {
         ScriptContext context = NashornHelper.createContext(engine);
 
         NashornHelper.evalIntoEngine(engine, context, "globalFunc.js",
-                        "globalFuncVar = function(a,b) { return a + b; }\n" +
+                "globalFuncVar = function(a,b) { return a + b; }\n" +
                         "function globalFunc(a,b) { return a + b; }\n");
 
         assertEquals(5.0, NashornHelper.invokeFunction(engine, context, "globalFuncVar", 3, 2));
@@ -260,6 +261,49 @@ public class NashornHelperTest {
 
     @Test
     public void testLoadWithRequire() throws Exception {
+        testLoadWithRequire("de/deverado/framework/js/nashorn/require.js");
+    }
+
+    @Test
+    public void testLoadWithRequireFake() throws Exception {
+        testLoadWithRequire("de/deverado/framework/js/nashorn/requireFake.js");
+    }
+
+    public void testLoadWithRequire(String whichRequire) throws Exception {
+        NashornScriptEngine engine = NashornHelper.createEngine();
+        ScriptContext context = NashornHelper.createContext(engine);
+
+        LinkedHashMap<String, CharSource> oneTarget = new LinkedHashMap<>();
+        NashornHelper.addClasspathResources(oneTarget, "de/deverado/framework/js/nashorn/uglify",
+                "./lib/parse-js.js");
+
+        NashornHelper.loadWithRequire(engine, context, oneTarget, whichRequire);
+
+        String uglifyScript = "function test() {\n" +
+                "var result = {};\n" +
+                "result.first = require('lib/parse-js.js');\n" +
+                "result.second = result.first.tokenizer;\n" +
+                "return result; \n" +
+                "}\n";
+
+        NashornHelper.evalIntoEngine(engine, context, "uglifyCaller", uglifyScript);
+
+        ScriptObjectMirror result = (ScriptObjectMirror) NashornHelper.invokeFunction(engine, context, "test");
+        assertNotNull(result.get("first"));
+        assertNotNull(result.get("second"));
+    }
+
+    @Test
+    public void testComplexLoadWithRequire() throws Exception {
+        testComplexLoadWithRequire("de/deverado/framework/js/nashorn/require.js");
+    }
+
+    @Test
+    public void testComplexLoadWithRequireFake() throws Exception {
+        testComplexLoadWithRequire("de/deverado/framework/js/nashorn/requireFake.js");
+    }
+
+    public void testComplexLoadWithRequire(String whichRequire) throws Exception {
         NashornScriptEngine engine = NashornHelper.createEngine();
         ScriptContext context = NashornHelper.createContext(engine);
 
@@ -268,7 +312,7 @@ public class NashornHelperTest {
                 "./lib/parse-js.js", "./lib/consolidator.js", "./lib/process.js", "./lib/squeeze-more.js",
                 "uglify.js");
 
-        NashornHelper.loadWithRequire(engine, context, uglifyTargets);
+        NashornHelper.loadWithRequire(engine, context, uglifyTargets, whichRequire);
 
         String uglifyScript = "function uglify(orig_code) {\n" +
                 "var jsp = require('uglify').parser;\n" +
@@ -278,7 +322,9 @@ public class NashornHelperTest {
                 "ast = pro.ast_mangle(ast); // get a new AST with mangled names\n" +
                 "ast = pro.ast_squeeze(ast); // get an AST with compression optimizations\n" +
                 "return pro.gen_code(ast); // compressed code here\n" +
-                "}";
+                "}\n"
+                //+"require('/uglify.js');"
+                ;
 
         NashornHelper.evalIntoEngine(engine, context, "uglifyCaller", uglifyScript);
 

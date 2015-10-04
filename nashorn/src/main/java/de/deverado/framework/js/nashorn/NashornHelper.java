@@ -225,7 +225,7 @@ public class NashornHelper {
     }
 
     /**
-     * A node-fake-compatible require() implementation useful for loading common-js style modules. After this
+     * A compatible require() implementation useful for loading common-js style modules. After this
      * the context 'knows' require.
      * @param engine MODIFIED, context is set to it.
      * @param context get require if not available yet. Must the require fake of NashornHelper - other requires don't
@@ -235,12 +235,32 @@ public class NashornHelper {
      */
     public static void loadWithRequire(NashornScriptEngine engine, ScriptContext context,
                                        LinkedHashMap<String, CharSource> requireTargets) throws Exception {
+        loadWithRequire(engine, context, requireTargets, "de/deverado/framework/js/nashorn/require.js");
+    }
+
+    /**
+     * A node-fake-compatible require() implementation useful for loading common-js style modules. After this
+     * the context 'knows' require.
+     * @param engine MODIFIED, context is set to it.
+     * @param context get require if not available yet. Must the require fake of NashornHelper - other requires don't
+     *                work.
+     * @param requireTargets read when required, module names/paths to CharSources that provide the source.
+     *                       See {@link #addClasspathResources(LinkedHashMap, String, String...)}.
+     */
+    public static void loadWithDebuggingFakeRequire(NashornScriptEngine engine, ScriptContext context,
+                                                    LinkedHashMap<String, CharSource> requireTargets) throws Exception {
+        loadWithRequire(engine, context, requireTargets, "de/deverado/framework/js/nashorn/requireFake.js");
+    }
+
+    static void loadWithRequire(NashornScriptEngine engine, ScriptContext context,
+                                        LinkedHashMap<String, CharSource> requireTargets,
+                                        String requireResourceName) throws Exception {
 
         engine.setContext(context);
         if (context.getAttribute("require") == null) {
             String requireScript;
             try {
-                requireScript = Resources.asCharSource(Resources.getResource("de/deverado/framework/js/nashorn/requireFake.js"),
+                requireScript = Resources.asCharSource(Resources.getResource(requireResourceName),
                         Charsets.UTF_8).read();
             } catch (Exception e) {
                 throw new RuntimeException("Missing a resource: " + e.getMessage(), e);
